@@ -149,7 +149,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta #bibliothèque dyal w9te
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(munites=15), #Token dyal l-access kay-sali b3d 15 minutes
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',), #Hadchi li jay rah Token JWT bch yfhmo react
 }
