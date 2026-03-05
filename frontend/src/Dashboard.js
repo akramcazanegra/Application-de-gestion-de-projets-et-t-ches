@@ -4,6 +4,9 @@ import taskService from './services/taskService';
 import { quoteService } from './services/quoteService';
 
 function Dashboard() {
+  // ==========================================
+  // PHASE 6: INTERFACE UTILISATEUR (GESTION D'ÉTATS)
+  // ==========================================
   const [projects, setProjects] = useState([]);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [editingId, setEditingId] = useState(null);
@@ -16,21 +19,47 @@ function Dashboard() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
 
+  // ==========================================
+  // PHASE 4 & 2: INITIALISATION (API EXTERNE & PROJETS)
+  // ==========================================
   useEffect(() => {
-    loadProjects();
-    fetchDailyQuote();
+    // 1. Check direct l-token
+    const token = localStorage.getItem('access_token');
+    
+    // 2. Ila l-token ma-kaynch, khrjo f l-blast bla ma-t-sennaw l-error dyal Axios
+    if (!token) {
+        window.location.replace('/login');
+        return;
+    }
+    loadProjects(); // Phase 2: Charger les projets de l'utilisateur
+    fetchDailyQuote(); // Phase 4: Appel à l'API externe (Citations)
   }, []);
-
+    // --- LOGIQUE API EXTERNE (CITATIONS) ---
   const fetchDailyQuote = async () => {
     const data = await quoteService.getRandomQuote();
-    setQuote(data);
+    setQuote(data); // Gestion des erreurs incluse dans le service
   };
 
+  // ==========================================
+  // PHASE 2: GESTION DES PROJETS (CRUD)
+  // ==========================================
   const loadProjects = async () => {
-    const res = await projectService.getProjects();
-    setProjects(res.data);
+    //const res = await projectService.getProjects();
+    //setProjects(res.data);
+    try {
+      const res = await projectService.getProjects();
+      setProjects(res.data);
+    } catch (err) {
+      // L-interceptor ghadi i-gérer 401, hna ghi bach mat-t-l3ch error f React
+      console.log("Session expirée, redirection en cours...");
+    }
   };
 
+  // ==========================================
+  // PHASE 3: GESTION DES TÂCHES (LOGIQUE MÉTIER)
+  // ==========================================
+
+  // Afficher les tâches d'un projet spécifique
   const handleViewTasks = async (project) => {
     const res = await taskService.getTasksByProject(project.id);
     setTasks(res.data);
@@ -42,7 +71,7 @@ function Dashboard() {
     setTaskFormData({ title: '', description: '', priority: 'MEDIUM', status: 'TODO', deadline: '' });
     setEditingTaskId(null);
   };
-
+  // Créer ou Modifier une tâche (Validation incluse via HTML5 & Backend)
   const handleCreateOrUpdateTask = async (e) => {
     e.preventDefault();
     if (editingTaskId) {
@@ -71,7 +100,7 @@ function Dashboard() {
       deadline: task.deadline ? task.deadline.split('T')[0] : ''
     });
   };
-
+  // Visual Feedback (Priorités)
   const getPriorityStyle = (p) => ({
     padding: '4px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold',
     backgroundColor: p === 'HIGH' ? 'rgba(239, 68, 68, 0.1)' : p === 'MEDIUM' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
@@ -81,6 +110,10 @@ function Dashboard() {
 
   return (
     <div style={styles.container}>
+      {/* ==========================================
+          PHASE 4: INTÉGRATION API EXTERNE (HEADER)
+          ========================================== */}
+
       <header style={styles.header}>
         <h1 style={styles.title}>Karizma Manager 🚀</h1>
         <p style={styles.subtitle}>Your Digital Project Workspace</p>
@@ -94,6 +127,10 @@ function Dashboard() {
       </header>
 
       <div style={styles.mainContent}>
+        {/* ==========================================
+            PHASE 2: FORMULAIRE PROJET (CRUD)
+            ========================================== */}
+
         <aside style={styles.sidebar}>
           <div style={styles.card}>
             <h3 style={styles.cardTitle}>{editingId ? "✨ Edit Project" : "➕ New Project"}</h3>
@@ -111,6 +148,10 @@ function Dashboard() {
             </form>
           </div>
         </aside>
+
+        {/* ==========================================
+            PHASE 2 & 7: AFFICHAGE DES PROJETS (SÉCURISÉ)
+            ========================================== */}
 
         <section style={styles.content}>
           <div style={styles.grid}>
@@ -131,6 +172,9 @@ function Dashboard() {
           </div>
         </section>
       </div>
+      {/* ==========================================
+          PHASE 3 & 6: MODAL DES TÂCHES (FILTRES & CRUD)
+          ========================================== */}
 
       {isModalOpen && (
         <div style={styles.modalOverlay}>
@@ -139,6 +183,7 @@ function Dashboard() {
               <h3 style={{color: '#fff'}}>Project: <span style={{color: '#6366f1'}}>{selectedProject?.name}</span></h3>
               <button onClick={() => { setIsModalOpen(false); resetTaskForm(); }} style={styles.closeBtn}>&times;</button>
             </div>
+            {/* --- FILTRAGE DES TÂCHES --- */}
 
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
               <select style={styles.input} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
@@ -176,7 +221,7 @@ function Dashboard() {
                   </div>
                 ))}
             </div>
-
+                  {/* --- FORMULAIRE TÂCHE --- */}
             <div style={styles.addTaskSection}>
               <h4 style={{color: '#fff', marginBottom: '20px'}}>{editingTaskId ? "Edit Task" : "Add New Task"}</h4>
               <form onSubmit={handleCreateOrUpdateTask} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -229,6 +274,10 @@ function Dashboard() {
   );
 }
 
+
+// ==========================================
+// PHASE 6: DESIGN RESPONSIVE & STYLES (UI)
+// ==========================================
 const styles = {
   container: { backgroundColor: '#0f172a', minHeight: '100vh', padding: '40px', paddingTop: '100px', fontFamily: "'Inter', sans-serif", color: '#fff' },
   header: { textAlign: 'center', marginBottom: '40px' },

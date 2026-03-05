@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from './api';
 
 const API_URL = 'http://127.0.0.1:8000/api/projects/';
 
@@ -10,8 +11,10 @@ const getAuthHeaders = () => {
 
 export const projectService = {
     // Consulter
-    getProjects: () => axios.get(API_URL, getAuthHeaders()),
+    //getProjects: () => axios.get(API_URL, getAuthHeaders()),
     
+
+    getProjects: () => api.get('projects/'), // Hna l-token kiy-tzad bo7do w expiration m-checkya
     // Créer (Nom + Description)
     createProject: (data) => axios.post(API_URL, data, getAuthHeaders()),
     
